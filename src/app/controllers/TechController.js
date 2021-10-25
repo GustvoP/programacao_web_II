@@ -4,25 +4,26 @@ import Tech from '../models/Tech';
 
 module.exports = {
   async store(req, res) {
-    const user = await User.findByPk(req.userId);
+    const schema = Yup.object().shape({
+      name: Yup.string().required(),
+      year_created: Yup.number().required()
+    });
+
+    if (!(await schema.isValid(req.body))) {
+      return res.status(400).json({ error: 'Falha na validação.' });
+    }
 
     const { name, year_created } = req.body;
 
-    if (!user) {
-      return res.status(400).json({
-        error: `Usuário não encontrado`,
-      });
+    try {
+      await Tech.create(req.body);
+
+      return res.status(201).json({ message: 'Tecnologia criada com sucesso.' });
+    } catch (e) {
+      return res
+        .status(400)
+        .json({ error: 'Ocorreu um erro ao criar a tecnologia.' });
     }
-
-    const [tech] = await Tech.findOrCreate({
-      where: { name, year_created },
-    });
-
-    console.log(user);
-
-    await user.addTech(tech);
-
-    return res.json(tech);
   },
 
   async index(req, res) {
@@ -30,10 +31,10 @@ module.exports = {
       const techs = await Tech.findAll();
 
       if (techs.length === 0) {
-        return res.status(401).json({ error: 'Nenhuma tecnologia encontrada' });
+        return res.status(404).json({ error: 'Nenhuma tecnologia encontrada' });
       }
 
-      return res.json({ techs });
+      return res.status(200).json({ techs });
     } catch (e) {
       return res
         .status(400)
@@ -43,30 +44,24 @@ module.exports = {
 
   async update(req, res) {
     const schema = Yup.object().shape({
-      name: Yup.string(),
-      year_created: Yup.number()
+      name: Yup.string().required(),
+      year_created: Yup.number().required()
     });
 
     if (!(await schema.isValid(req.body))) {
-      return res.status(400).json({ error: 'Falha na validação' });
+      return res.status(400).json({ error: 'Falha na validação.' });
     }
-
-    const { name, year_created } = req.body;
 
     const tech = await Tech.findByPk(req.params.techId);
 
-    if (name !== tech.name) {
-      const techExists = await User.findOne({ where: { name } });
-
-      if (techExists) {
-        return res.status(400).json({ error: 'Tecnologia já existe' });
-      }
+    if (!tech) {
+      return res.status(404).json({ error: 'Tecnologia não existe.' });
     }
 
     try {
-      const { id, name, year_created } = await tech.update(req.body);
+      await tech.update(req.body);
 
-      return res.json({ id, name, year_created });
+      return res.status(200).json({ message: 'Tecnologia alterada com sucesso.' });
     } catch (e) {
       return res
         .status(400)
@@ -79,7 +74,7 @@ module.exports = {
       const tech = await Tech.findByPk(req.params.techId);
 
       await tech.destroy();
-      return res.json({ message: 'Tecnologia deletada com sucesso' });
+      return res.status(200).json({ message: 'Tecnologia deletada com sucesso' });
     } catch (e) {
       return res
         .status(400)
@@ -91,9 +86,13 @@ module.exports = {
     try {
       const tech = await Tech.findByPk(req.params.id);
 
-      return res.json({ tech });
+      if (!tech) {
+        return res.status(404).json({ error: 'Tecnologia não encontrada.' });
+      }
+
+      return res.status(200).json({ tech });
     } catch (e) {
-      return res.status(400).json({ error: 'Tecnologia não encontrado' });
+      return res.status(400).json({ error: 'Tecnologia não encontrada.' });
     }
   },
 
@@ -102,12 +101,12 @@ module.exports = {
       const techs = await Tech.findAll({ where: { name: req.body.name } });
 
       if (techs.length === 0) {
-        return res.status(400).json({
+        return res.status(404).json({
           error: `Nenhuma tecnologia com o nome ${req.body.name} foi encontrada`,
         });
       }
 
-      return res.json({ techs });
+      return res.status(200).json({ techs });
     } catch (e) {
       return res.status(400).json({
         error: `Ocorreu um erro ao exibir as tecnologias`,
@@ -120,12 +119,12 @@ module.exports = {
       const techs = await Tech.findAll({ where: { year_created: req.body.year_created } });
 
       if (techs.length === 0) {
-        return res.status(400).json({
+        return res.status(404).json({
           error: `Nenhuma tecnologia com o ano ${req.body.year_created} foi encontrada`,
         });
       }
 
-      return res.json({ techs });
+      return res.status(200).json({ techs });
     } catch (e) {
       return res.status(400).json({
         error: `Ocorreu um erro ao exibir as tecnologias`,

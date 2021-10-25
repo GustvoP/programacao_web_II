@@ -22,7 +22,7 @@ class UserController {
     try {
       const { id, name, email } = await User.create(req.body);
 
-      return res.json({ id, name, email });
+      return res.status(201).json({ id, name, email });
     } catch (e) {
       return res
         .status(400)
@@ -68,7 +68,7 @@ class UserController {
     try {
       const { id, name } = await user.update(req.body);
 
-      return res.json({ id, name, email });
+      return res.status(200).json({ id, name, email });
     } catch (e) {
       return res
         .status(400)
@@ -81,10 +81,10 @@ class UserController {
       const users = await User.findAll();
 
       if (users.length === 0) {
-        return res.status(401).json({ error: 'Nenhum usuário encontrado' });
+        return res.status(404).json({ error: 'Nenhum usuário encontrado' });
       }
 
-      return res.json({ users });
+      return res.status(200).json({ users });
     } catch (e) {
       return res
         .status(400)
@@ -97,7 +97,7 @@ class UserController {
       const users = await User.findAll({ where: { name: req.body.name } });
 
       if (users.length === 0) {
-        return res.status(400).json({
+        return res.status(404).json({
           error: `Nenhum usuário com o nome ${req.body.name} foi encontrado`,
         });
       }
@@ -115,7 +115,7 @@ class UserController {
       const user = await User.findOne({ where: { email: req.body.email } });
 
       if (user === null) {
-        return res.status(400).json({
+        return res.status(404).json({
           error: `Nenhum usuário com o e-mail ${req.body.email} foi encontrado`,
         });
       }
@@ -132,9 +132,13 @@ class UserController {
     try {
       const user = await User.findByPk(req.params.id);
 
-      return res.json({ user });
+      if (!user) {
+        return res.status(404).json({ error: 'Usuário não encontrado' });
+      }
+
+      return res.status(200).json({ user });
     } catch (e) {
-      return res.status(400).json({ error: 'Usuário não encontrado' });
+      return res.status(400).json({ error: 'Ocorreu um erro ao exibir o usuário' });
     }
   }
 
@@ -143,7 +147,7 @@ class UserController {
       const user = await User.findByPk(req.userId);
 
       await user.destroy();
-      return res.json({ message: 'Usuário deletado com sucesso' });
+      return res.status(200).json({ message: 'Usuário deletado com sucesso' });
     } catch (e) {
       return res
         .status(400)

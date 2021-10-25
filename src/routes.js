@@ -3,6 +3,7 @@ import { Router } from 'express';
 import UserController from './app/controllers/UserController';
 import SessionController from './app/controllers/SessionController';
 import TechController from './app/controllers/TechController';
+import UserTechController from './app/controllers/UserTechController';
 
 import authMiddleware from './app/middlewares/auth';
 
@@ -27,5 +28,11 @@ routes.get('/techs-by-year', TechController.indexByYear);
 routes.post('/techs', TechController.store);
 routes.put('/techs/:techId', TechController.update);
 routes.delete('/techs/:techId', TechController.delete);
+
+routes.get('/user_techs', UserTechController.index);
+routes.get('/user_techs/:id', UserTechController.show);
+routes.post('/user_techs', UserTechController.store);
+routes.put('/user_techs/:id', UserTechController.update);
+routes.delete('/user_techs/:id', UserTechController.delete);
 
 export default routes;

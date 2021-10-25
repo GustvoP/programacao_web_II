@@ -27,14 +27,6 @@ class User extends Model {
   checkPassword(password) {
     return bcrypt.compare(password, this.password_hash);
   }
-
-  static associate(models) {
-    this.belongsToMany(models.Tech, {
-      foreignKey: 'user_id',
-      through: 'user_techs',
-      as: 'techs',
-    });
-  }
 }
 
 export default User;
